@@ -35,7 +35,7 @@ port_range = range(1, 62115)
 fill_queue(port_range)
 threads = []
 
-for i in range(100):
+for i in range(100):  # Set how many threads to run.
     thread = threading.Thread(target=portscanner)
     threads.append(thread)
 
@@ -44,7 +44,7 @@ for i in threads:
 
 try:
     for thread in threads:
-        thread.join()
+        thread.join()  # wait till threads finish and close.
 except KeyboardInterrupt:
     print(f"{RED}exiting..{RESET}")
 
