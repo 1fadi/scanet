@@ -11,7 +11,11 @@ RED = Fore.RED
 ascii_banner = figlet_format("Port scanner")
 print(f"{GREEN}{str(ascii_banner)}{RESET}")
 
-target = "192.168.178.1"
+## TARGET IP ##
+IP = "192.168.178.1"
+# IP = "localhost"
+port_range = range(1, 62115)  # or create a list instead
+
 queue = Queue()
 
 
@@ -30,8 +34,7 @@ def fill_queue(port_range):
     for port in port_range:
         queue.put(port)
 
-
-port_range = range(1, 62115)
+        
 fill_queue(port_range)
 threads = []
 
