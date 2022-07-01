@@ -1,5 +1,5 @@
 # Port_Scan
-a script that scans open ports
+a script that scans open ports\n
 it uses multi threading to speed up the process, the module queue is to prevent threads
 from returning duplicate results.
 
