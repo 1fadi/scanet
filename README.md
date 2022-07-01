@@ -14,3 +14,5 @@ from returning duplicate results.
 
 ## Usage
 specify the target IP and the range of ports you want to scan.
+
+it can scan public and private IP addresses.
