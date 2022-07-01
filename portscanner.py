@@ -4,6 +4,7 @@ from pyfiglet import figlet_format
 from queue import Queue
 from colorama import Fore
 
+# colors
 GREEN = Fore.GREEN
 RESET = Fore.RESET
 RED = Fore.RED
@@ -23,10 +24,12 @@ def portscanner():
     while not queue.empty():
         port = queue.get()
         try:
+            # it a connection was successfull, the port will be printed.
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((target, port))
             print(f"{GREEN} [+]{RESET} {target}:{port}")
         except:
+            # ports that are not open are skipped.
             continue
 
 
