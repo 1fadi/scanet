@@ -12,7 +12,7 @@ RED = Fore.RED
 ascii_banner = figlet_format("Port scanner")
 print(f"{GREEN}{str(ascii_banner)}{RESET}")
 
-## TARGET IP ##
+# TARGET IP
 IP = "192.168.178.1"
 # IP = "localhost"
 port_range = range(1, 62115)  # or create a list instead
@@ -24,10 +24,10 @@ def portscanner():
     while not queue.empty():
         port = queue.get()
         try:
-            # it a connection was successfull, the port will be printed.
+            # it a connection was successful, the port will be printed.
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((target, port))
-            print(f"{GREEN} [+]{RESET} {target}:{port}")
+            sock.connect((IP, port))
+            print(f"{GREEN} [+]{RESET} {IP}:{port}")
         except:
             # ports that are not open are skipped.
             continue
