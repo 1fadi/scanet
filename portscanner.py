@@ -20,38 +20,51 @@ port_range = range(1, 62115)  # or create a list instead
 queue = Queue()
 
 
-def portscanner():
-    while not queue.empty():
-        port = queue.get()
-        try:
-            # it a connection was successful, the port will be printed.
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((IP, port))
-            print(f"{GREEN} [+]{RESET} {IP}:{port}")
-        except:
-            # ports that are not open are skipped.
-            continue
+class Scanner(threading.Thread):
+    def __int__(self):
+        threading.Thread.__init__(self)
+        self.IP = IP
+
+    def run(self):
+        """
+        it keeps looping as long as there are ports available to scan
+        """
+        global queue
+        global IP
+        while not queue.empty():
+            port = queue.get()
+            try:
+                # if a connection was successful, the port will be printed.
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.connect((IP, port))
+                print(f"{GREEN} [+]{RESET} {IP}:{port}")
+            except:
+                # ports that are not open are skipped.
+                continue
 
 
 def fill_queue(port_range):
     for port in port_range:
         queue.put(port)
 
-        
-fill_queue(port_range)
-threads = []
 
-for i in range(100):  # Set how many threads to run.
-    thread = threading.Thread(target=portscanner)
-    threads.append(thread)
+def manager(n):  # Set how many threads to run.
+    threads = []
+    for i in range(n):
+        thread = Scanner()
+        threads.append(thread)
 
-for i in threads:
-    i.start()
-
-try:
     for thread in threads:
-        thread.join()  # wait till threads finish and close.
-except KeyboardInterrupt:
-    print(f"{RED}exiting..{RESET}")
+        thread.start()
+
+    try:
+        for thread in threads:
+            thread.join()  # wait till threads finish and close.
+    except KeyboardInterrupt:
+        print(f"{RED}exiting..{RESET}")
+
+
+fill_queue(port_range)
+manager(100)
 
 print("\nscanning finished.\n")
