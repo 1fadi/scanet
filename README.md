@@ -12,7 +12,7 @@ from returning duplicate results.
 * argparse
 
 ## Usage
-####examples:
+#### examples:
 to scan a port:
 `python3 portscanner.py -T 192.168.178.1 -p 80`
 
