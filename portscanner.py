@@ -1,23 +1,12 @@
 import socket
 import threading
-from pyfiglet import figlet_format
 from queue import Queue
-from colorama import Fore
+import argparse
 
 # colors
-GREEN = Fore.GREEN
-RESET = Fore.RESET
-RED = Fore.RED
-
-ascii_banner = figlet_format("Port scanner")
-print(f"{GREEN}{str(ascii_banner)}{RESET}")
-
-# TARGET
-IP = input("\nEnter target IP: ")
-port_range = range(1, 62115)  # or create a list instead
-running_threads = int(input("Enter number of threads to run: "))
-
-queue = Queue()
+GREEN = "\033[0;32m"
+RESET = "\033[0;0m"
+RED = "\033[0;31m"
 
 
 class Scanner(threading.Thread):
@@ -67,8 +56,59 @@ def manager(_range, ip, _queue):
         print(f"{RED}exiting..{RESET}")
 
 
-if __name__ == "__main__":
-    fill_queue(port_range, queue)
+def ascii_banner():
+    print("""\033[0;32m
+         ///              
+        / PORT SCANNER 
+       ///\033[0;0m
+    """)
+
+
+def args_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-T", "--target", dest="TARGET",
+                        type=str, help="specify the target IP address",
+                        required=True)
+    parser.add_argument("-p", "--port", dest="PORTS", nargs="+",
+                        type=int, help="specify one or more ports",
+                        )
+    parser.add_argument("-r", "--range", dest="RANGE",
+                        type=str, help="range of ports to be scanned (e.g. 1-1024)",
+                        )
+    parser.add_argument("-t", "--threads", dest="THREADS",
+                        default=100, type=int, help="number of threads (default: 100)")
+    args = parser.parse_args()
+    try:
+        if args.RANGE:
+            RANGE = [int(i) for i in args.RANGE.split("-")]
+            data = (args.TARGET, RANGE, args.THREADS)
+            return data
+        elif not args.PORTS and not args.RANGE:
+            print("[-] Error. use '--help' for help")
+        else:
+            data = (args.TARGET, args.PORTS, args.THREADS)
+            return data
+    except:
+        print("[-] Error. use '--help' for help")
+
+
+def main():
+    ascii_banner()
+    IP, ports, threads = args_parser()  # unpacking the returning tuple of data
+
+    try:  # check if the value is a range or a list
+        ports = range(ports[0], ports[1] + 1)
+    except IndexError:
+        pass
+
+    running_threads = threads  # number of threads to run
+
+    queue = Queue()
+    fill_queue(ports, queue)  # it takes either a list or a range of ports
     manager(running_threads, IP, queue)
 
     print("\nscanning finished.\n")
+
+
+if __name__ == "__main__":
+    main()
