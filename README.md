@@ -8,11 +8,23 @@ from returning duplicate results.
 #### Modules:
 * socket
 * threading
-* pyfiglet
 * queue
-* colorama
+* argparse
 
 ## Usage
-specify the target IP and the range of ports you want to scan.
+examples:
+to scan a port:
+`python3 portscanner.py -T 192.168.178.1 -p 80`
+
+to scan a list of ports:
+`python3 portscanner.py -T 192.168.178.1 -p 80 443 500`
+
+to scan a range of ports:
+`python3 portscanner.py -T 192.168.178.1 -r 1-1024`
+
+optinal arguments:
+`-t or --threads` to specify how many threads to run (default: 100)
+print help message:
+`python3 portscanner.py --help`
 
 it can scan public and private IP addresses.
