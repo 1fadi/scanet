@@ -24,6 +24,7 @@ to scan a range of ports:
 
 optinal arguments:
 `-t or --threads` to specify how many threads to run (default: 100)
+
 print help message:
 `python3 portscanner.py --help`
 
