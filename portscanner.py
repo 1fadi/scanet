@@ -3,7 +3,7 @@ import threading
 from queue import Queue
 import argparse
 
-# colors
+# ascii color codes
 GREEN = "\033[0;32m"
 RESET = "\033[0;0m"
 RED = "\033[0;31m"
@@ -25,7 +25,7 @@ class Scanner(threading.Thread):
             port = self._queue.get()
             try:
                 # if a connection was successful, the port will be printed.
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # create an internet tcp sock
                 sock.connect((self.ip, port))
                 print(f"{GREEN} [+]{RESET} {self.ip}:{port}")
             except:
@@ -34,6 +34,7 @@ class Scanner(threading.Thread):
 
 
 def fill_queue(_port_range, _queue):
+    """turns a list of ports into a queue"""
     for port in _port_range:
         _queue.put(port)
 
@@ -65,6 +66,7 @@ def ascii_banner():
 
 
 def args_parser():
+    """arguments and help commands to use in the console/terminal"""
     parser = argparse.ArgumentParser()
     parser.add_argument("-T", "--target", dest="TARGET",
                         type=str, help="specify the target IP address",
@@ -78,13 +80,14 @@ def args_parser():
     parser.add_argument("-t", "--threads", dest="THREADS",
                         default=100, type=int, help="number of threads (default: 100)")
     args = parser.parse_args()
+
     try:
         if args.RANGE:
             RANGE = [int(i) for i in args.RANGE.split("-")]
             data = (args.TARGET, RANGE, args.THREADS)
             return data
         elif not args.PORTS and not args.RANGE:
-            print("[-] Error. use '--help' for help")
+            print("[-] No ports specified! use '--help' for help")
         else:
             data = (args.TARGET, args.PORTS, args.THREADS)
             return data
@@ -102,8 +105,9 @@ def main():
         pass
 
     running_threads = threads  # number of threads to run
-
-    queue = Queue()
+    # Queue class is to exchange data safely between multiple threads.
+    # it also prevents threads from returning duplicates.
+    queue = Queue()  
     fill_queue(ports, queue)  # it takes either a list or a range of ports
     manager(running_threads, IP, queue)
 
