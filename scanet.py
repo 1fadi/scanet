@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import socket
 import threading
 from queue import Queue
@@ -17,7 +18,7 @@ parser = argparse.ArgumentParser(prog='PROG')
 subparser = parser.add_subparsers(dest="command")
 subparser.required = True
 
-parser_a = subparser.add_parser("scan", help="help for scan")
+parser_a = subparser.add_parser("scan", help="find open ports.")
 parser_a.add_argument("-T", "--target", dest="TARGET",
                       type=str, help="specify the target IP address",
                       required=True)
@@ -30,10 +31,10 @@ parser_a.add_argument("-r", "--range", dest="RANGE",
 parser_a.add_argument("-t", "--threads", dest="THREADS",
                       default=100, type=int, help="number of threads (default: 100)")
 
-parser_b = subparser.add_parser("get", help="help for get")
+parser_b = subparser.add_parser("get", help="get info. (general, version)")
 parser_b.add_argument("info", choices=["general", "version"])
 
-parser_c = subparser.add_parser("local", help="help for local")
+parser_c = subparser.add_parser("local", help="scan local network.")
 parser_c.add_argument("-s", "--scan", required=True, dest="network", type=str,
                       help="scan local devices that are connected to the network.")
 
@@ -92,10 +93,10 @@ class PortScanner(threading.Thread):
                 continue
 
 
-def fill_queue(_port_range, _queue):
+def fill_queue(_list, _queue):
     """turns a list of ports into a queue"""
-    for port in _port_range:
-        _queue.put(port)
+    for item in _list:
+        _queue.put(item)
 
 
 def manager(_range, ip, _queue):
@@ -178,6 +179,9 @@ def main():
         manager(running_threads, IP, queue)
 
         print("\nscanning finished.\n")
+
+    else:
+        print("use -h for help")
 
 
 if __name__ == "__main__":
