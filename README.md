@@ -30,7 +30,7 @@ optinal arguments:
 `-t or --threads` to specify how many threads to run (default: 100)
 
 to get a list of all devices connected to the same network: (must be given root permission!)
-`python3 portscanner.py local scan 192.168.178.0`
+`python3 portscanner.py local -s 192.168.178.0`
 
 to get info, public and private IPv4 addresses:
 `python3 portscanner.py get general`
