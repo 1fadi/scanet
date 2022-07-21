@@ -1,6 +1,7 @@
 # scanet
 ## Introduction
-* scanet is a simple networking tool that scans IPs for open ports.
+scanet is a simple networking tool that can do the following:
+* scans IPs for open ports.
 * scans a network and displays IP and MAC address of
 every device connected to the network.
 * gets public and private IPv4 addresses of the host.
