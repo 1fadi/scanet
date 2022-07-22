@@ -14,31 +14,33 @@ RED = "\033[0;31m"
 
 __version__ = "2.0"
 
-parser = argparse.ArgumentParser(prog='PROG')
-subparser = parser.add_subparsers(dest="command")
-subparser.required = True
 
-parser_a = subparser.add_parser("scan", help="find open ports.")
-parser_a.add_argument("-T", "--target", dest="TARGET",
-                      type=str, help="specify the target IP address",
-                      required=True)
-parser_a.add_argument("-p", "--port", dest="PORTS", nargs="+",
-                      type=int, help="specify one or more ports",
-                      )
-parser_a.add_argument("-r", "--range", dest="RANGE",
-                      type=str, help="range of ports to be scanned (e.g. 1-1024)",
-                      )
-parser_a.add_argument("-t", "--threads", dest="THREADS",
-                      default=100, type=int, help="number of threads (default: 100)")
+def argsParser():
+    parser = argparse.ArgumentParser(prog='PROG')
+    subparser = parser.add_subparsers(dest="command")
+    subparser.required = True
 
-parser_b = subparser.add_parser("get", help="get info. (general, version)")
-parser_b.add_argument("info", choices=["general", "version"])
+    parser_a = subparser.add_parser("scan", help="find open ports.")
+    parser_a.add_argument("-T", "--target", dest="TARGET",
+                        type=str, help="specify the target IP address",
+                        required=True)
+    parser_a.add_argument("-p", "--port", dest="PORTS", nargs="+",
+                        type=int, help="specify one or more ports",
+                        )
+    parser_a.add_argument("-r", "--range", dest="RANGE",
+                        type=str, help="range of ports to be scanned (e.g. 1-1024)",
+                        )
+    parser_a.add_argument("-t", "--threads", dest="THREADS",
+                        default=100, type=int, help="number of threads (default: 100)")
 
-parser_c = subparser.add_parser("local", help="scan local network.")
-parser_c.add_argument("-s", "--scan", required=True, dest="network", type=str,
-                      help="scan local devices that are connected to the network.")
+    parser_b = subparser.add_parser("get", help="get info. (general, version)")
+    parser_b.add_argument("info", choices=["general", "version"])
 
-args = parser.parse_args()
+    parser_c = subparser.add_parser("local", help="scan local network.")
+    parser_c.add_argument("-s", "--scan", required=True, dest="network", type=str,
+                        help="scan local devices that are connected to the network.")
+
+    return parser.parse_args()
 
 
 def scan_network(ip_):
@@ -100,6 +102,9 @@ def fill_queue(_list, _queue):
 
 
 def manager(_range, ip, _queue):
+    """
+    takes care of threads and speeds up port scanning.
+    """
     global RED
     global RESET
     threads = []
@@ -126,9 +131,8 @@ def ascii_banner():
 
 
 def main():
-    ascii_banner()
+    args = argsParser()
 
-    global args
     if args.command == "get":
         if args.info == "general":
             host = socket.gethostname()
@@ -137,7 +141,9 @@ def main():
             try:
                 public_ip = requests.get("https://ipinfo.io/json").json()["ip"]
             except:
+                # if the host is not connected to the internet.
                 public_ip = "Not available"
+            ascii_banner()
             print(f"""
             Hostname: {host}
             Gateway: {gateway}
@@ -146,10 +152,15 @@ def main():
             """)
 
         elif args.info == "version":
+            global __version__
+            ascii_banner()
             print("current version is:", __version__)
 
     elif args.command == "local":
-        scan_network(args.network)
+        try:
+            scan_network(args.network)
+        except PermissionError as err:
+            print("Permission denied. are you root?")
     elif args.command == "scan":
         try:
             if args.RANGE:
