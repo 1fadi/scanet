@@ -3,7 +3,6 @@ import socket
 import threading
 from queue import Queue
 import argparse
-from unittest import result
 import scapy.all
 import requests
 
