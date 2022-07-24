@@ -3,6 +3,7 @@ import socket
 import threading
 from queue import Queue
 import argparse
+from unittest import result
 import scapy.all
 import requests
 
@@ -43,7 +44,7 @@ def argsParser():
     return parser.parse_args()
 
 
-def scan_network(ip_):
+def scan_network(ip_, outputs):
     """
     return IPv4 of all connected devices to the network as well as their MAC address.
     """
@@ -67,8 +68,15 @@ def scan_network(ip_):
 
     hosts = scapy.all.srp(request_broadcast, timeout=1)[0]
 
-    for i in hosts:
-        print(i[1].psrc, i[1].hwsrc)
+    for host in hosts:
+        addr = host[1].psrc
+        mac_addr = host[1].hwsrc
+        hostname = socket.gethostbyaddr(addr)[0]
+        data = [addr, hostname, mac_addr]
+        if data not in outputs:
+            outputs.append(data)
+        else:
+            continue
 
 
 class PortScanner(threading.Thread):
@@ -157,8 +165,12 @@ def main():
             print("current version is:", __version__)
 
     elif args.command == "local":
+        results = []
         try:
-            scan_network(args.network)
+            for i in range(4):
+                scan_network(args.network, results)
+            for i in results:
+                print("{:16} | {:40} | {:17}".format(*i))
         except PermissionError as err:
             print("Permission denied. are you root?")
     elif args.command == "scan":
