@@ -1,11 +1,11 @@
 #!/usr/bin/python
 import argparse
+import socket
+import threading
 from sys import exit
 from queue import Queue
 
 try:
-    import socket
-    import threading
     import scapy.all
     import requests
 except ModuleNotFoundError as err:
@@ -111,7 +111,6 @@ class PortScanner(threading.Thread):
 
 
 def fill_queue(_list, _queue):
-    """turns a list of ports into a queue"""
     for item in _list:
         _queue.put(item)
 
