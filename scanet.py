@@ -1,10 +1,15 @@
 #!/usr/bin/python
-import socket
-import threading
-from queue import Queue
 import argparse
-import scapy.all
-import requests
+from sys import exit
+from queue import Queue
+
+try:
+    import socket
+    import threading
+    import scapy.all
+    import requests
+except ModuleNotFoundError as err:
+    exit("requirements not installed. run: pip3 install -r requirements.txt")
 
 # ascii color codes
 GREEN = "\033[0;32m"
@@ -12,7 +17,7 @@ RESET = "\033[0;0m"
 RED = "\033[0;31m"
 
 
-__version__ = "2.0"
+__version__ = "2.3"
 
 
 def argsParser():
@@ -70,7 +75,10 @@ def scan_network(ip_, outputs):
     for host in hosts:
         addr = host[1].psrc
         mac_addr = host[1].hwsrc
-        hostname = socket.gethostbyaddr(addr)[0]
+        try:
+            hostname = socket.gethostbyaddr(addr)[0]
+        except socket.herror as err:
+            hostname = "UNKOWN"
         data = [addr, hostname, mac_addr]
         if data not in outputs:
             outputs.append(data)
@@ -144,6 +152,10 @@ def main():
         if args.info == "general":
             host = socket.gethostname()
             ipv4 = socket.gethostbyname(host)
+            if ipv4[:3] == "127":
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(("8.8.8.8", 80))
+                ipv4 = s.getsockname()[0]
             gateway = ipv4.rpartition(".")[0] + ".1"
             try:
                 public_ip = requests.get("https://ipinfo.io/json").json()["ip"]
