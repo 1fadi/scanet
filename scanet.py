@@ -2,14 +2,13 @@
 import argparse
 import socket
 import threading
-from sys import exit
 from queue import Queue
 
 try:
     import scapy.all
     import requests
 except ModuleNotFoundError as err:
-    exit("requirements not installed. run: pip3 install -r requirements.txt")
+    exit("requirements not installed. \nrun: pip3 install -r requirements.txt\n")
 
 # ascii color codes
 GREEN = "\033[0;32m"
@@ -17,7 +16,7 @@ RESET = "\033[0;0m"
 RED = "\033[0;31m"
 
 
-__version__ = "2.3"
+__version__ = "2.5"
 
 
 def argsParser():
@@ -149,24 +148,42 @@ def main():
 
     if args.command == "get":
         if args.info == "general":
-            host = socket.gethostname()
+            no_inet = False
+            host = socket.gethostname()  # send a DNS request to get name of the host.
             ipv4 = socket.gethostbyname(host)
             if ipv4[:3] == "127":
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect(("8.8.8.8", 80))
-                ipv4 = s.getsockname()[0]
-            gateway = ipv4.rpartition(".")[0] + ".1"
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # this method requires internet connection. 
+                try:
+                    s.connect(("8.8.8.8", 80))
+                    ipv4 = s.getsockname()[0]
+                except:
+                    no_inet = True  # not connected to a network
+
+            def extract_ipv6(hostname):
+                data = socket.getaddrinfo(hostname, 80)
+                exracted_data = filter(lambda x: (x[0] == socket.AF_INET6), data)  # extracts tuples that contain IPv6 addresses only
+                return list(exracted_data)[0][4][0]
+
+            if no_inet:
+                ipv4 = "unavailable"
+                gateway = "unavailable"
+                ipv6 = "unavailable"
+            else:
+                ipv6 = extract_ipv6(host)
+                gateway = ipv4.rpartition(".")[0] + ".1"
             try:
                 public_ip = requests.get("https://ipinfo.io/json").json()["ip"]
             except:
                 # if the host is not connected to the internet.
-                public_ip = "Not available"
+                public_ip = "unavailable"
+
             ascii_banner()
             print(f"""
-            Hostname: {host}
-            Gateway: {gateway}
-            Private IPv4: {ipv4}
-            Public IPv4: {public_ip} 
+            Hostname:     | {host}
+            Gateway:      | {gateway}
+            Private IPv4: | {ipv4}
+            Public IPv4:  | {public_ip}
+            IPv6:         | {ipv6}
             """)
 
         elif args.info == "version":
@@ -182,7 +199,7 @@ def main():
             for i in results:
                 print("{:16} | {:40} | {:17}".format(*i))
         except PermissionError as err:
-            print("Permission denied. are you root?")
+            print("Permission denied. **root privileges needed**")
     elif args.command == "scan":
         try:
             if args.RANGE:
@@ -214,7 +231,7 @@ def main():
         print("\nscanning finished.\n")
 
     else:
-        print("use -h for help")
+        print("Invalid input. Use -h for help")
 
 
 if __name__ == "__main__":
