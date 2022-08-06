@@ -71,11 +71,18 @@ def scan_network(ip_, outputs):
 
     hosts = scapy.all.srp(request_broadcast, timeout=1)[0]
 
+    # this section gets gateway name to get it cut from hostnames
+    # which will be discovered on the network.
+    gateway = ip_.rpartition(".")[0] + ".1"
+    gateway_name = socket.gethostbyaddr(gateway)
+
     for host in hosts:
         addr = host[1].psrc
         mac_addr = host[1].hwsrc
         try:
-            hostname = socket.gethostbyaddr(addr)[0]
+            hostname = socket.gethostbyaddr(addr)[0].replace(gateway_name[0], "").rpartition(".")[0]
+            if addr == gateway:
+                hostname = "_gateway_"
         except socket.herror as err:
             hostname = "UNKOWN"
         data = [addr, hostname, mac_addr]
