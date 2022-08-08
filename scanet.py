@@ -172,9 +172,7 @@ def main():
                 return list(exracted_data)[0][4][0]
 
             if no_inet:
-                ipv4 = "unavailable"
-                gateway = "unavailable"
-                ipv6 = "unavailable"
+                ipv4 = ipv6 = gateway = "unavailable"
             else:
                 ipv6 = extract_ipv6(host)
                 gateway = ipv4.rpartition(".")[0] + ".1"
@@ -206,31 +204,33 @@ def main():
             for i in results:
                 print("{:16} | {:40} | {:17}".format(*i))
         except PermissionError as err:
-            print("Permission denied. **root privileges needed**")
+            exit("Permission denied. **root privileges needed**")
+            
     elif args.command == "scan":
         try:
-            if args.RANGE:
+            if not args.PORTS and not args.RANGE:
+                exit("[-] No ports specified! use '--help' for help")
+
+            elif args.RANGE:
                 RANGE = [int(i) for i in args.RANGE.split("-")]
                 data = (args.TARGET, RANGE, args.THREADS)
 
-            elif not args.PORTS and not args.RANGE:
-                print("[-] No ports specified! use '--help' for help")
             else:
                 data = (args.TARGET, args.PORTS, args.THREADS)
 
         except:
-            print("[-] Error. use '--help' for help")
-
-        IP, ports, threads = data  # unpacking the returning tuple of data
-
-        try:  # check if the value is a range or a list
-            ports = range(ports[0], ports[1] + 1)
-        except IndexError:
-            pass
-
-        running_threads = threads  # number of threads to run
-        # Queue class is to exchange data safely between multiple threads.
-        # it also prevents threads from returning duplicates.
+            exit("\033[0;31m[-]\033[0;0m Error. use '--help' or '-h' for help")
+        try:
+            IP, ports, threads = data  # unpacking the returning tuple of data
+            try:  # check if the value is a range or a list
+                ports = range(ports[0], ports[1] + 1)
+            except IndexError:
+                pass
+            running_threads = threads  # number of threads to run
+            # Queue class is to exchange data safely between multiple threads.
+            # it also prevents threads from returning duplicates.
+        except UnboundLocalError:
+            exit("\033[0;31m[-]\033[0;0m Error. use '--help' or '-h' for help")
         queue = Queue()
         fill_queue(ports, queue)  # it takes either a list or a range of ports
         manager(running_threads, IP, queue)
