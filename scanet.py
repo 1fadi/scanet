@@ -158,11 +158,13 @@ def main():
             no_inet = False
             host = socket.gethostname()  # send a DNS request to get name of the host.
             ipv4 = socket.gethostbyname(host)
+            # /etc/hosts file might have localhost written in it, it will return 127.0.0.1 as ipv4.
+            # below is method 2 to get ipv4 but it requires an internet connection due to creating an internet socket.
             if ipv4[:3] == "127":
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # this method requires internet connection. 
                 try:
                     s.connect(("8.8.8.8", 80))
-                    ipv4 = s.getsockname()[0]
+                    ipv4 = s.getsockname()[0]  # return local ip of the socket.
                 except:
                     no_inet = True  # not connected to a network
 
@@ -176,6 +178,7 @@ def main():
             else:
                 ipv6 = extract_ipv6(host)
                 gateway = ipv4.rpartition(".")[0] + ".1"
+
             try:
                 public_ip = requests.get("https://ipinfo.io/json").json()["ip"]
             except:
@@ -198,6 +201,7 @@ def main():
 
     elif args.command == "local":
         results = []
+
         try:
             for i in range(4):
                 scan_network(args.network, results)
@@ -205,7 +209,7 @@ def main():
                 print("{:16} | {:40} | {:17}".format(*i))
         except PermissionError as err:
             exit("Permission denied. **root privileges needed**")
-            
+
     elif args.command == "scan":
         try:
             if not args.PORTS and not args.RANGE:
@@ -217,9 +221,9 @@ def main():
 
             else:
                 data = (args.TARGET, args.PORTS, args.THREADS)
-
         except:
             exit("\033[0;31m[-]\033[0;0m Error. use '--help' or '-h' for help")
+
         try:
             IP, ports, threads = data  # unpacking the returning tuple of data
             try:  # check if the value is a range or a list
@@ -231,12 +235,11 @@ def main():
             # it also prevents threads from returning duplicates.
         except UnboundLocalError:
             exit("\033[0;31m[-]\033[0;0m Error. use '--help' or '-h' for help")
+
         queue = Queue()
         fill_queue(ports, queue)  # it takes either a list or a range of ports
         manager(running_threads, IP, queue)
-
         print("\nscanning finished.\n")
-
     else:
         print("Invalid input. Use -h for help")
 
