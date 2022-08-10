@@ -1,6 +1,13 @@
 # byte compiled files
 __pycache__
 
+# packaging
+dist/
+build/
+
+# pyintsaller
+*.spec
+
 # virtual enviroments
 env/
 venv/
