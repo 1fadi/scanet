@@ -19,7 +19,7 @@ RED = "\033[0;31m"
 __version__ = "2.5"
 
 
-def argsParser():
+def args_parser():
     parser = argparse.ArgumentParser(prog='PROG')
     subparser = parser.add_subparsers(dest="command")
     subparser.required = True
@@ -86,21 +86,18 @@ def scan_network(ip_, outputs):
         except socket.herror as err:
             hostname = "UNKOWN"
         data = [addr, hostname, mac_addr]
-        if data not in outputs:
-            outputs.append(data)
-        else:
+        if data in outputs:
             continue
+        outputs.append(data)
 
 
 class PortScanner(threading.Thread):
     def __init__(self, ip, _queue):
-        threading.Thread.__init__(self)
+        super().__init__()
         self.ip = ip
         self._queue = _queue
 
     def run(self):
-        global GREEN
-        global RESET
         """
         it keeps looping as long as there are ports available to scan
         """
@@ -121,14 +118,12 @@ def fill_queue(_list, _queue):
         _queue.put(item)
 
 
-def manager(_range, ip, _queue):
+def manager(number_of_threads, ip, _queue):
     """
     takes care of threads and speeds up port scanning.
     """
-    global RED
-    global RESET
     threads = []
-    for i in range(_range):  # Set how many threads to run.
+    for i in range(number_of_threads):  # Set how many threads to run.
         thread = PortScanner(ip, _queue)
         threads.append(thread)
 
@@ -143,15 +138,21 @@ def manager(_range, ip, _queue):
 
 
 def ascii_banner():
-    print("""\033[0;32m
+    print(f"""{GREEN}
          ///              
         / SCANET 
-       ///\033[0;0m
+       ///{RESET}
     """)
 
 
+def extract_ipv6(hostname):
+    data = socket.getaddrinfo(hostname, 80)
+    exracted_data = filter(lambda x: (x[0] == socket.AF_INET6), data)  # extracts tuples that contain IPv6 addresses only
+    return list(exracted_data)[0][4][0]
+
+
 def main():
-    args = argsParser()
+    args = args_parser()
 
     if args.command == "get":
         if args.info == "general":
@@ -167,11 +168,6 @@ def main():
                     ipv4 = s.getsockname()[0]  # return local ip of the socket.
                 except:
                     no_inet = True  # not connected to a network
-
-            def extract_ipv6(hostname):
-                data = socket.getaddrinfo(hostname, 80)
-                exracted_data = filter(lambda x: (x[0] == socket.AF_INET6), data)  # extracts tuples that contain IPv6 addresses only
-                return list(exracted_data)[0][4][0]
 
             if no_inet:
                 ipv4 = ipv6 = gateway = "unavailable"
@@ -222,7 +218,7 @@ def main():
             else:
                 data = (args.TARGET, args.PORTS, args.THREADS)
         except:
-            exit("\033[0;31m[-]\033[0;0m Error. use '--help' or '-h' for help")
+            exit(f"{RED}[-]{RESET} Error. use '--help' or '-h' for help")
 
         try:
             IP, ports, threads = data  # unpacking the returning tuple of data
@@ -234,7 +230,7 @@ def main():
             # Queue class is to exchange data safely between multiple threads.
             # it also prevents threads from returning duplicates.
         except UnboundLocalError:
-            exit("\033[0;31m[-]\033[0;0m Error. use '--help' or '-h' for help")
+            exit(f"{RED}[-]{RESET} Error. use '--help' or '-h' for help")
 
         queue = Queue()
         fill_queue(ports, queue)  # it takes either a list or a range of ports
