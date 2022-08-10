@@ -18,7 +18,7 @@ from returning duplicate results.
 * scapy
 * requests
 
-to install requirements, run `pip3 install -r requiremnets.txt` if you have pip3 installed.
+to install requirements, run `pip3 install -r requirements.txt` if you have pip3 installed.
 otherwise, run `python3 -m pip install -r requirements.txt`.
 
 ## Usage
