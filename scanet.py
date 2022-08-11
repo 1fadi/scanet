@@ -1,8 +1,9 @@
 #!/usr/bin/python
 import argparse
 import socket
-import threading
+from threading import Thread
 from queue import Queue
+from sys import exit
 
 try:
     import scapy.all
@@ -16,7 +17,7 @@ RESET = "\033[0;0m"
 RED = "\033[0;31m"
 
 
-__version__ = "2.5"
+__version__ = "2.6"
 
 
 def args_parser():
@@ -91,7 +92,7 @@ def scan_network(ip_, outputs):
         outputs.append(data)
 
 
-class PortScanner(threading.Thread):
+class PortScanner(Thread):
     def __init__(self, ip, _queue):
         super().__init__()
         self.ip = ip
@@ -204,7 +205,7 @@ def main():
             for i in results:
                 print("{:16} | {:40} | {:17}".format(*i))
         except PermissionError as err:
-            exit("Permission denied. **root privileges needed**")
+            exit(f"{RED}Permission denied.{RESET} **root privileges needed**")
 
     elif args.command == "scan":
         try:
