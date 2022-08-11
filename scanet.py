@@ -135,7 +135,7 @@ def manager(number_of_threads, ip, _queue):
         for thread in threads:
             thread.join()  # wait till threads finish and close.
     except KeyboardInterrupt:
-        print(f"{RED}exiting..{RESET}")
+        exit(f"{RED}exiting..{RESET}")
 
 
 def ascii_banner():
