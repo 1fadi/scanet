@@ -1,5 +1,5 @@
 # scanet
-## Introduction
+## Overview
 scanet is a simple networking tool that can do the following:
 * scans IPs for open ports.
 * scans a network and displays IP and MAC address of
@@ -10,15 +10,10 @@ it uses multi threading to speed up the process of port scanning, the module que
 from returning duplicate results.
 
 ## Requirements
-#### Modules:
-* socket
-* threading
-* queue
-* argparse
-* scapy
-* requests
 
-to install requirements, run `pip3 install -r requirements.txt` if you have pip3 installed.
+#### to install requirements:
+run `pip3 install -r requirements.txt` if you have pip3 installed.
+
 otherwise, run `python3 -m pip install -r requirements.txt`.
 
 ## Usage
@@ -39,7 +34,7 @@ optinal arguments:
 * to get a list of all devices connected to the same network: (must be given root permission!)
 `python3 scanet.py local -s 192.168.178.0`
 
-* to get info, public and private IPv4 addresses:
+* to get hostname, public/private IPv4/IPv6 addresses:
 `python3 scanet.py get general`
 
 * print help message:
