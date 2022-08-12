@@ -9,7 +9,7 @@ try:
     import scapy.all
     import requests
 except ModuleNotFoundError as err:
-    exit("requirements not installed. \nrun: pip3 install -r requirements.txt\n")
+    exit("requirements not installed. \nrun: python3 -m pip install -r requirements.txt\n")
 
 # ascii color codes
 GREEN = "\033[0;32m"
@@ -93,17 +93,17 @@ def scan_network(ip_, outputs):
 
 
 class PortScanner(Thread):
-    def __init__(self, ip, _queue):
+    def __init__(self, ip, ports):
         super().__init__()
         self.ip = ip
-        self._queue = _queue
+        self.ports = ports
 
     def run(self):
         """
         it keeps looping as long as there are ports available to scan
         """
-        while not self._queue.empty():
-            port = self._queue.get()
+        while not self.ports.empty():
+            port = self.ports.get()
             try:
                 # if a connection was successful, the port will be printed.
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # create an internet tcp sock
@@ -114,28 +114,31 @@ class PortScanner(Thread):
                 continue
 
 
-def fill_queue(_list, _queue):
-    for item in _list:
-        _queue.put(item)
+def fill_queue(items: list, queue_):
+    for item in items:
+        queue_.put(item)
 
 
 def manager(number_of_threads, ip, _queue):
     """
-    takes care of threads and speeds up port scanning.
+    handling threading exceptions, 
     """
     threads = []
     for i in range(number_of_threads):  # Set how many threads to run.
         thread = PortScanner(ip, _queue)
         threads.append(thread)
-
-    for thread in threads:
-        thread.start()
+    try:
+        for thread in threads:
+            thread.daemon = True
+            thread.start()
+    except (KeyboardInterrupt, SystemExit):
+        exit("// debugging mode - ERROR: KeyboardInterrupt - debugging mode //")
 
     try:
         for thread in threads:
             thread.join()  # wait till threads finish and close.
     except KeyboardInterrupt:
-        exit(f"{RED}exiting..{RESET}")
+        exit(f"{RED}KeyboardInterrupt.. STOPPED.{RESET}")
 
 
 def ascii_banner():
