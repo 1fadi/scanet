@@ -6,7 +6,7 @@ from queue import Queue
 from sys import exit
 
 try:
-    import scapy.all
+    import scapy.all as scapy
     import requests
 except ModuleNotFoundError as err:
     exit("requirements not installed. \nrun: python3 -m pip install -r requirements.txt\n")
@@ -17,7 +17,7 @@ RESET = "\033[0;0m"
 RED = "\033[0;31m"
 
 
-__version__ = "2.6"
+__version__ = "2.7"
 
 
 def args_parser():
@@ -48,48 +48,69 @@ def args_parser():
     return parser.parse_args()
 
 
-def scan_network(ip_, outputs):
+class LocalScanner:
     """
-    return IPv4 of all connected devices to the network as well as their MAC address.
+    send ARP requests and return IPv4 + MAC address of all devices connected to the 'same' network.
     """
+    def __init__(self, ip: str):
+        self.ip = ip.rpartition(".")[0] + ".0"  # turn the given local ip into its network address.
+        
+    def arp_request(self):
+        
+        # verbose turned off.
+        scapy.conf.verb = 0
+        
+        request = scapy.ARP()  # create an ARP request
+        request.pdst = f"{self.ip}/24"  # specify network address in CIDR notation.
 
-    # verbose turned off by default.
-    scapy.all.conf.verb = 0
+        broadcast = scapy.Ether()
+        broadcast.dst = "ff:ff:ff:ff:ff:ff"
 
-    # send ARP request
-    request = scapy.all.ARP()
+        request_broadcast = broadcast / request
 
-    ip = ip_.rpartition(".")[0] + ".0"  # set network address
+        results = scapy.srp(request_broadcast, timeout=1)[0]
+        return results
 
-    # specify network address in CIDR notation
-    request.pdst = i = f"{ip}/24"
+    def gather_info(self, data: list):
+        """
+        gets only necessary information from self.request() and put in list.
 
-    broadcast = scapy.all.Ether()
+        :param: data: *an empty list*
 
-    broadcast.dst = "ff:ff:ff:ff:ff:ff"
-
-    request_broadcast = broadcast / request
-
-    hosts = scapy.all.srp(request_broadcast, timeout=1)[0]
-
-    # this section gets gateway name to get it cut from hostnames
-    # which will be discovered on the network.
-    gateway = ip_.rpartition(".")[0] + ".1"
-    gateway_name = socket.gethostbyaddr(gateway)
-
-    for host in hosts:
-        addr = host[1].psrc
-        mac_addr = host[1].hwsrc
+        """
         try:
-            hostname = socket.gethostbyaddr(addr)[0].replace(gateway_name[0], "").rpartition(".")[0]
-            if addr == gateway:
-                hostname = "_gateway_"
-        except socket.herror as err:
-            hostname = "UNKOWN"
-        data = [addr, hostname, mac_addr]
-        if data in outputs:
-            continue
-        outputs.append(data)
+            results = self.request()
+        except PermissionError as err:
+            exit(f"{RED}Permission denied.{RESET} **root privileges needed**")
+
+        # this section gets gateway name to get it cut from
+        # hostnames which will be discovered on the network.
+        gateway = self.ip.rpartition(".")[0] + ".1"
+        gateway_name = socket.gethostbyaddr(gateway)
+
+        for host in results:
+            addr = host[1].psrc
+            mac_addr = host[1].hwsrc
+            try:
+                hostname = socket.gethostbyaddr(addr)[0].replace(gateway_name[0], "").rpartition(".")[0]
+                if addr == gateway:
+                    hostname = "_gateway_"
+            except socket.herror as err:
+                hostname = "UNKOWN"
+            host =  (addr, hostname, mac_addr)
+            if host not in data:
+                data.append(host)
+        return data
+
+    def start(self, count: int):
+        """
+        the main method of the class
+        """
+        hosts = []
+        for i in range(count):
+            self.gather_info(hosts)
+        for host in hosts:
+            print("{:16} | {:40} | {:17}".format(*host))
 
 
 class PortScanner(Thread):
@@ -99,10 +120,7 @@ class PortScanner(Thread):
         self.ports = ports
 
     def run(self):
-        """
-        it keeps looping as long as there are ports available to scan
-        """
-        while not self.ports.empty():
+        while not self.ports.empty():  # it keeps looping as long as there are ports available to scan
             port = self.ports.get()
             try:
                 # if a connection was successful, the port will be printed.
@@ -200,15 +218,8 @@ def main():
             print("current version is:", __version__)
 
     elif args.command == "local":
-        results = []
-
-        try:
-            for i in range(4):
-                scan_network(args.network, results)
-            for i in results:
-                print("{:16} | {:40} | {:17}".format(*i))
-        except PermissionError as err:
-            exit(f"{RED}Permission denied.{RESET} **root privileges needed**")
+        local_scanner = LocalScanner(args.network)
+        local_scanner.start(4)
 
     elif args.command == "scan":
         try:
