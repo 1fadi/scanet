@@ -79,7 +79,7 @@ class LocalScanner:
 
         """
         try:
-            results = self.request()
+            results = self.arp_request()
         except PermissionError as err:
             exit(f"{RED}Permission denied.{RESET} **root privileges needed**")
 
