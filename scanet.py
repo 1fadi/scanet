@@ -17,7 +17,7 @@ RESET = "\033[0;0m"
 RED = "\033[0;31m"
 
 
-__version__ = "2.7"
+version = "2.7"
 
 
 def args_parser():
@@ -91,13 +91,16 @@ class LocalScanner:
         for host in results:
             addr = host[1].psrc
             mac_addr = host[1].hwsrc
+
             try:
                 hostname = socket.gethostbyaddr(addr)[0].replace(gateway_name[0], "").rpartition(".")[0]
                 if addr == gateway:
                     hostname = "_gateway_"
-            except socket.herror as err:
+            except socket.herror:
                 hostname = "UNKOWN"
-            host =  (addr, hostname, mac_addr)
+            finally:
+                host =  (addr, hostname, mac_addr)
+
             if host not in data:
                 data.append(host)
         return data
@@ -120,7 +123,7 @@ class PortScanner(Thread):
         self.ports = ports
 
     def run(self):
-        while not self.ports.empty():  # it keeps looping as long as there are ports available to scan
+        while not self.ports.empty():  # keep looping as long as there are ports available to scan
             port = self.ports.get()
             try:
                 # if a connection was successful, the port will be printed.
@@ -139,7 +142,7 @@ def fill_queue(items: list, queue_):
 
 def manager(number_of_threads, ip, _queue):
     """
-    handling threading exceptions, 
+    handling threading exceptions.
     """
     threads = []
     for i in range(number_of_threads):  # Set how many threads to run.
@@ -149,8 +152,8 @@ def manager(number_of_threads, ip, _queue):
         for thread in threads:
             thread.daemon = True
             thread.start()
-    except (KeyboardInterrupt, SystemExit):
-        exit("// debugging mode - ERROR: KeyboardInterrupt - debugging mode //")
+    except (KeyboardInterrupt, SystemExit) as err:
+        exit(err)
 
     try:
         for thread in threads:
@@ -170,8 +173,10 @@ def ascii_banner():
 def extract_ipv6(hostname):
     data = socket.getaddrinfo(hostname, 80)
     exracted_data = filter(lambda x: (x[0] == socket.AF_INET6), data)  # extracts tuples that contain IPv6 addresses only
-    return list(exracted_data)[0][4][0]
-
+    try:
+        return list(exracted_data)[0][4][0]
+    except IndexError:
+        return None
 
 def main():
     args = args_parser()
@@ -187,9 +192,10 @@ def main():
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # this method requires internet connection. 
                 try:
                     s.connect(("8.8.8.8", 80))
-                    ipv4 = s.getsockname()[0]  # return local ip of the socket.
-                except:
+                except (ConnectionError, OSError, ConnectionRefusedError):
                     no_inet = True  # not connected to a network
+                else:
+                    ipv4 = s.getsockname()[0]  # return local ip of the socket.
 
             if no_inet:
                 ipv4 = ipv6 = gateway = "unavailable"
@@ -199,8 +205,8 @@ def main():
 
             try:
                 public_ip = requests.get("https://ipinfo.io/json").json()["ip"]
-            except:
-                # if the host is not connected to the internet.
+            except requests.exceptions.ConnectionError:
+                # the host is not connected to the internet.
                 public_ip = "unavailable"
 
             ascii_banner()
@@ -213,9 +219,8 @@ def main():
             """)
 
         elif args.info == "version":
-            global __version__
             ascii_banner()
-            print("current version is:", __version__)
+            print("current version is:", version)
 
     elif args.command == "local":
         local_scanner = LocalScanner(args.network)
