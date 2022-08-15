@@ -68,8 +68,12 @@ class LocalScanner:
 
         request_broadcast = broadcast / request
 
-        results = scapy.srp(request_broadcast, timeout=1)[0]
-        return results
+        results = scapy.srp(request_broadcast, timeout=1)  # return answered and unanswered requests. 
+        if len(list(results[0])) == 0:  # check if no answers at all.
+            exit(f"{RED}[-]{RESET} Error. No answers received.\n\
+                * device might not be connected to a network.\n\
+                * The specified Network address might be wrong.")
+        return results[0]
 
     def gather_info(self, data: list):
         """
@@ -86,7 +90,10 @@ class LocalScanner:
         # this section gets gateway name to get it cut from
         # hostnames which will be discovered on the network.
         gateway = self.ip.rpartition(".")[0] + ".1"
-        gateway_name = socket.gethostbyaddr(gateway)
+        try:
+            gateway_name = socket.gethostbyaddr(gateway)
+        except socket.herror:
+            pass
 
         for host in results:
             addr = host[1].psrc
