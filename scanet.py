@@ -36,7 +36,7 @@ def args_parser():
                         type=str, help="range of ports to be scanned (e.g. 1-1024)",
                         )
     parser_a.add_argument("-t", "--threads", dest="THREADS",
-                        default=100, type=int, help="number of threads (default: 100)")
+                        default=50, type=int, help="number of threads (default: 50)")
 
     parser_b = subparser.add_parser("get", help="get info. (general, version)")
     parser_b.add_argument("info", choices=["general", "version"])
@@ -140,7 +140,7 @@ class PortScanner(Thread):
             except (ConnectionError, ConnectionRefusedError, OSError):
                 with self.lock: 
                     # skip closed ports.
-                    print(f"{RED} [-]{RESET} {self.ip}:{port}", end="\r")
+                    print("scanning..", end="\r")
             else:
                 # if a connection was successful, the port will be printed.
                 with self.lock:  # acquire and release lock to prevent race conditions.
@@ -269,6 +269,7 @@ def main():
         queue = Queue()
         fill_queue(ports, queue)  # it takes either a list or a range of ports
         manager(running_threads, IP, queue)
+        print("__________________________")
         print("\nscanning finished.\n")
     else:
         print("Invalid input. Use -h for help")
