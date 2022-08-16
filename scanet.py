@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import argparse
 import socket
-from threading import Thread
+from threading import Thread, Lock
 from queue import Queue
 from sys import exit
 
@@ -17,7 +17,7 @@ RESET = "\033[0;0m"
 RED = "\033[0;31m"
 
 
-version = "2.7"
+version = "2.8"
 
 
 def args_parser():
@@ -128,19 +128,26 @@ class PortScanner(Thread):
         super().__init__()
         self.ip = ip
         self.ports = ports
+        self.lock = Lock()
 
     def run(self):
         while not self.ports.empty():  # keep looping as long as there are ports available to scan
             port = self.ports.get()
+
             try:
-                # if a connection was successful, the port will be printed.
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # create an internet tcp sock
                 sock.connect((self.ip, port))
-                print(f"{GREEN} [+]{RESET} {self.ip}:{port}")
-            except:
-                # ports that are not open are skipped.
-                continue
-
+            except (ConnectionError, ConnectionRefusedError, OSError):
+                with self.lock: 
+                    # skip closed ports.
+                    print(f"{RED} [-]{RESET} {self.ip}:{port}", end="\r")
+            else:
+                # if a connection was successful, the port will be printed.
+                with self.lock:  # acquire and release lock to prevent race conditions.
+                    print(f"{GREEN} [+]{RESET} {self.ip}:{port}")
+            finally:
+                sock.close()
+    
 
 def fill_queue(items: list, queue_):
     for item in items:
