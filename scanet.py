@@ -100,7 +100,7 @@ class LocalScanner:
             mac_addr = host[1].hwsrc
 
             try:
-                hostname = socket.gethostbyaddr(addr)[0].replace(gateway_name[0], "").rpartition(".")[0]
+                hostname = socket.gethostbyaddr(addr)[0]#.replace(gateway_name[0], "").rpartition(".")[0]
                 if addr == gateway:
                     hostname = "_gateway_"
             except socket.herror:
