@@ -11,6 +11,3 @@ build/
 # virtual enviroments
 env/
 venv/
-
-# vscode settings
-.vscode/
