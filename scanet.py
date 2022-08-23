@@ -241,25 +241,23 @@ def main():
         local_scanner.start(4)
 
     elif args.command == "scan":
-        try:
-            if not args.PORTS and not args.RANGE:
-                exit("[-] No ports specified! use '--help' for help")
 
-            elif args.RANGE:
+        if not args.PORTS and not args.RANGE:
+            exit("[-] No ports specified! use '--help' for help")
+        elif args.RANGE:
+            try:
                 RANGE = [int(i) for i in args.RANGE.split("-")]
-                data = (args.TARGET, RANGE, args.THREADS)
-
-            else:
-                data = (args.TARGET, args.PORTS, args.THREADS)
-        except:
-            exit(f"{RED}[-]{RESET} Error. use '--help' or '-h' for help")
+                if len(RANGE) != 2:
+                    exit(f"{RED}[-]{RESET} Invalid range of ports!") 
+                ports = range(RANGE[0], RANGE[1] + 1)
+            except (ValueError, IndexError):
+                exit(f"{RED}[-]{RESET} Invalid range of ports!") 
+            data = (args.TARGET, ports, args.THREADS)
+        else:
+            data = (args.TARGET, args.PORTS, args.THREADS)
 
         try:
-            IP, ports, threads = data  # unpacking the returning tuple of data
-            try:  # check if the value is a range or a list
-                ports = range(ports[0], ports[1] + 1)
-            except IndexError:
-                pass
+            IP, ports, threads = data
             running_threads = threads  # number of threads to run
             # Queue class is to exchange data safely between multiple threads.
             # it also prevents threads from returning duplicates.
