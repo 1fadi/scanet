@@ -177,11 +177,20 @@ def manager(number_of_threads, ip, _queue):
 
 
 def ascii_banner():
-    print(f"""{GREEN}
-         ///              
-        / SCANET 
-       ///{RESET}
-    """)
+    b = """
+         //////-//////-//////-//--//-//////-//////
+        //-----//-----//--//-///-//-//-------//
+       //////-//-----//////-//////-//////---//
+      ----//-//-----//--//-//-///-//-------//
+     //////-//////-//--//-//--//-//////---//
+    """
+    r = ""
+    for i in b:
+        if i == "/":
+            r += f"{GREEN}/{RESET}"
+        else:
+            r += i
+    return r
 
 
 def extract_ipv6(hostname):
@@ -223,7 +232,7 @@ def main():
                 # the host is not connected to the internet.
                 public_ip = "unavailable"
 
-            ascii_banner()
+            print(ascii_banner())
             print(f"""
             Hostname:     | {host}
             Gateway:      | {gateway}
@@ -233,7 +242,7 @@ def main():
             """)
 
         elif args.info == "version":
-            ascii_banner()
+            print(ascii_banner())
             print("current version is:", version)
 
     elif args.command == "local":
