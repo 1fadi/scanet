@@ -119,6 +119,7 @@ class LocalScanner:
         hosts = []
         for i in range(count):
             self.gather_info(hosts)
+        print(f"{len(hosts)} answers recieved.\n")
         for host in hosts:
             print("{:16} | {:40} | {:17}".format(*host))
 
@@ -246,13 +247,22 @@ def main():
             print("current version is:", version)
 
     elif args.command == "local":
+        try:
+            socket.inet_aton(args.network)
+        except socket.error:
+            exit(f"{RED}[-]{RESET} The provided network IP address is invalid!")
+
         local_scanner = LocalScanner(args.network)
         local_scanner.start(4)
 
     elif args.command == "scan":
+        try:
+            socket.inet_aton(args.TARGET)
+        except socket.error:
+            exit(f"{RED}[-]{RESET} Please use a valid IP address.")
 
         if not args.PORTS and not args.RANGE:
-            exit("[-] No ports specified! use '--help' for help")
+            exit(f"{RED}[-]{RESET} No ports specified! use '--help' for help")
         elif args.RANGE:
             try:
                 RANGE = [int(i) for i in args.RANGE.split("-")]
@@ -272,7 +282,7 @@ def main():
             # it also prevents threads from returning duplicates.
         except UnboundLocalError:
             exit(f"{RED}[-]{RESET} Error. use '--help' or '-h' for help")
-
+        print("")
         queue = Queue()
         fill_queue(ports, queue)  # it takes either a list or a range of ports
         manager(running_threads, IP, queue)
