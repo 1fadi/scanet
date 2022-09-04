@@ -3,7 +3,7 @@ import argparse
 import socket
 from threading import Thread, Lock
 from queue import Queue
-from sys import exit
+from sys import exit, platform
 
 try:
     import scapy.all as scapy
@@ -17,7 +17,7 @@ RESET = "\033[0;0m"
 RED = "\033[0;31m"
 
 
-version = "2.8"
+version = "2.9"
 
 
 def args_parser():
@@ -82,6 +82,9 @@ class LocalScanner:
         :param: data: *an empty list*
 
         """
+        if platform == 'darwin':
+            exit(f"{RED}Permission denied.{RESET} Apple device detected: Apple doesn't grant root privileges. \
+                try running this program on linux in a Virtual Machine.")
         try:
             results = self.arp_request()
         except PermissionError as err:
@@ -212,7 +215,7 @@ def main():
             ipv4 = socket.gethostbyname(host)
             # /etc/hosts file might have localhost written in it, it will return 127.0.0.1 as ipv4.
             # below is method 2 to get ipv4 but it requires an internet connection due to creating an internet socket.
-            if ipv4[:3] == "127":
+            if ipv4[:3] == "127" and (platform == 'linux' or platform == 'linux2'):
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # this method requires internet connection. 
                 try:
                     s.connect(("8.8.8.8", 80))
@@ -259,7 +262,7 @@ def main():
         try:
             socket.inet_aton(args.TARGET)
         except socket.error:
-            exit(f"{RED}[-]{RESET} Please use a valid IP address.")
+            exit(f"{RED}[-]{RESET} Use a valid IP address.")
 
         if not args.PORTS and not args.RANGE:
             exit(f"{RED}[-]{RESET} No ports specified! use '--help' for help")
@@ -289,7 +292,7 @@ def main():
         print("__________________________")
         print("\nscanning finished.\n")
     else:
-        print("Invalid input. Use -h for help")
+        print("Invalid option. Use -h for help")
 
 
 if __name__ == "__main__":
