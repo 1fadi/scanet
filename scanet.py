@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import argparse
 import socket
 from threading import Thread, Lock
@@ -17,7 +17,7 @@ RESET = "\033[0;0m"
 RED = "\033[0;31m"
 
 
-version = "2.9"
+version = "2.9.1"
 
 
 def args_parser():
@@ -141,10 +141,14 @@ class PortScanner(Thread):
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # create an internet tcp sock
                 sock.connect((self.ip, port))
+
+            except OverflowError:
+                print(f"{RED} [-] !{port}{RESET} Port must be 0-65535.")
             except (ConnectionError, ConnectionRefusedError, OSError):
                 with self.lock: 
                     # skip closed ports.
                     print("scanning..", end="\r")
+
             else:
                 # if a connection was successful, the port will be printed.
                 with self.lock:  # acquire and release lock to prevent race conditions.
@@ -285,12 +289,13 @@ def main():
             # it also prevents threads from returning duplicates.
         except UnboundLocalError:
             exit(f"{RED}[-]{RESET} Error. use '--help' or '-h' for help")
-        print("")
-        queue = Queue()
-        fill_queue(ports, queue)  # it takes either a list or a range of ports
-        manager(running_threads, IP, queue)
-        print("__________________________")
-        print("\nscanning finished.\n")
+        else:
+            print("")
+            queue = Queue()
+            fill_queue(ports, queue)  # it takes either a list or a range of ports
+            manager(running_threads, IP, queue)
+            print("__________________________")
+            print("\nProcess finished.\n")
     else:
         print("Invalid option. Use -h for help")
 
