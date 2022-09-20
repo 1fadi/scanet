@@ -109,7 +109,7 @@ class LocalScanner:
             except socket.herror:
                 hostname = "UNKOWN"
             finally:
-                host =  (addr, hostname, mac_addr)
+                host =  (addr, mac_addr, hostname)
 
             if host not in data:
                 data.append(host)
@@ -123,8 +123,9 @@ class LocalScanner:
         for i in range(count):
             self.gather_info(hosts)
         print(f"{len(hosts)} answers recieved.\n")
+        print(f"{'IP':16} | {'MAC':17} | {'HOST'}")
         for host in hosts:
-            print("{:16} | {:40} | {:17}".format(*host))
+            print(f"{host[0]:16} | {host[1]:17} | {host[2]}")
 
 
 class PortScanner(Thread):
