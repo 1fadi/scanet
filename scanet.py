@@ -25,7 +25,7 @@ def args_parser():
     subparser = parser.add_subparsers(dest="command")
     subparser.required = True
 
-    parser_a = subparser.add_parser("scan", help="find open ports.")
+    parser_a = subparser.add_parser("scan", help="scan an IP address for open ports.")
     parser_a.add_argument("-T", "--target", dest="TARGET",
                         type=str, help="specify the target IP address",
                         required=True)
@@ -38,10 +38,10 @@ def args_parser():
     parser_a.add_argument("-t", "--threads", dest="THREADS",
                         default=50, type=int, help="number of threads (default: 50)")
 
-    parser_b = subparser.add_parser("get", help="get info. (general, version)")
+    parser_b = subparser.add_parser("get", help="get info about the machine.")
     parser_b.add_argument("info", choices=["general", "version"])
 
-    parser_c = subparser.add_parser("local", help="scan local network.")
+    parser_c = subparser.add_parser("local", help="scan local network to list connected devices.")
     parser_c.add_argument("-s", "--scan", required=True, dest="network", type=str,
                         help="scan local devices that are connected to the network.")
 
@@ -120,6 +120,7 @@ class LocalScanner:
         the main method of the class
         """
         hosts = []
+        print("Process started. Estimated time to finish: 4 - 10 sec\n")
         for i in range(count):
             self.gather_info(hosts)
         print(f"{len(hosts)} answers recieved.\n")
