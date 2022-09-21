@@ -41,5 +41,5 @@ otherwise, run `python3 -m pip install -r requirements.txt`.
 `python3 scanet.py --help`
 
 ## Notes
-works with Python 3.7 or above.
-this scripts is tested on debian and arch based linux systems and is supposed to work on other distros.
+* works with Python 3.7 or above.
+* this scripts is tested on debian and arch based linux systems and is supposed to also work fine on other distros.
