@@ -28,8 +28,8 @@ otherwise, run `python3 -m pip install -r requirements.txt`.
 * to scan a range of ports:
 `python3 scanet.py scan -T 192.168.178.1 -r 1-1024`
 
-optinal arguments:
-`-t or --threads` to specify how many threads to run (default: 100)
+    optinal arguments:
+    `-t or --threads` to specify how many threads to run (default: 50)
 
 * to get a list of all devices connected to the same network: (must be given root permission!)
 `python3 scanet.py local -s 192.168.178.0`
@@ -39,3 +39,7 @@ optinal arguments:
 
 * print help message:
 `python3 scanet.py --help`
+
+## Notes
+works with Python 3.7 or above.
+this scripts is tested on debian and arch based linux systems and is supposed to work on other distros.
